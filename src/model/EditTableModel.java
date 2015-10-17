@@ -11,8 +11,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 import java.util.ResourceBundle;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 import javax.swing.JOptionPane;
@@ -20,12 +18,14 @@ import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.AbstractTableModel;
 import listeners.TableMenuListener;
+import interfaces.TableModelColumnType;
+import java.util.HashMap;
 
 /**
  * A simple Edit Table Model using AbstractTable Model with an home made table menu listener
  * @author fk9424
  */
-public class EditTableModel extends AbstractTableModel implements TableMenuListener, TableModelListener {
+public class EditTableModel extends AbstractTableModel implements TableMenuListener, TableModelListener, TableModelColumnType {
     private ArrayList<Object[]> values;
     private String[] columnNames;
     private Class[] columnTypes;
@@ -33,6 +33,7 @@ public class EditTableModel extends AbstractTableModel implements TableMenuListe
     private Preferences prefs;
     private SimpleDateFormat formatter = new SimpleDateFormat("dd-MMM-yy");
     private ResourceBundle label = ResourceBundle.getBundle("view/labels/TableModelLabels", Locale.getDefault());
+    private HashMap<Integer, Object> defaultCellValue;
     
     public EditTableModel(String[] columnNames, Class[] columnTypes){
         this.columnNames = columnNames;
@@ -42,10 +43,9 @@ public class EditTableModel extends AbstractTableModel implements TableMenuListe
         this.prefs = prefs;
         ArrayList<Object[]> val = new ArrayList<Object[]>();
         if ((prefs == null) ||(!hasItems())){ // if we set preferences then data would be retrieve and save in the registry            
-            Object[] data = this.createNewRow();
-            val.add(data);
-            this.setPreferences(val);
             this.values = val;
+            this.defaultCellValue = new HashMap<Integer, Object>();
+            this.fireTableDataChanged();
         }else{
             this.values = new ArrayList<Object[]>();
             Object[] itemList;
@@ -88,7 +88,7 @@ public class EditTableModel extends AbstractTableModel implements TableMenuListe
     private String convertObjectToString(Object[] data){
         String sData = "";
         for(int i = 0; i < data.length ; i++){
-            if (this.getColumnTypes(i) == Date.class){
+            if (this.getColumnType(i) == Date.class){
                 sData += formatter.format(data[i])+"|";
             }else {
                 sData += data[i]+"|";
@@ -98,11 +98,12 @@ public class EditTableModel extends AbstractTableModel implements TableMenuListe
         return sData;
     }
     /**
-     * 
+     * From TableModelColumnType
      * @param c
      * @return a class indication the variable type Integer, String, Date etc ..
      */
-    public Class<?> getColumnTypes(int c){
+    @Override
+    public Class<?> getColumnType(int c){
         return columnTypes[c];
     }
     /**
@@ -113,19 +114,19 @@ public class EditTableModel extends AbstractTableModel implements TableMenuListe
     public void addEntry(String[] data){
         Object[] val = new Object[this.columnNames.length];        
         for(int i = 0 ; i < this.columnNames.length ; i++){
-            if (this.getColumnTypes(i) == Integer.class)
+            if (this.getColumnType(i) == Integer.class)
                 val[i] = Integer.parseInt(data[i]);
-            if (this.getColumnTypes(i) == Double.class)
+            if (this.getColumnType(i) == Double.class)
                 val[i] = Double.parseDouble(data[i]);
-            if (this.getColumnTypes(i) == Float.class)
+            if (this.getColumnType(i) == Float.class)
                 val[i] = Float.parseFloat(data[i]);
-            if (this.getColumnTypes(i) == Date.class)
+            if (this.getColumnType(i) == Date.class)
                 try {
                     val[i] = formatter.parse(data[i]);
                 } catch (ParseException ex) {
                    val[i] = new Date();
                 }
-            if (this.getColumnTypes(i) == String.class)
+            if (this.getColumnType(i) == String.class)
                 val[i] = data[i].toString();
         }
         this.values.add(val);
@@ -139,15 +140,17 @@ public class EditTableModel extends AbstractTableModel implements TableMenuListe
         rowNum = (this.values != null) ? this.getRowCount() : 0;
         Object[] data = new Object[this.columnNames.length];        
         for(int i = 0 ; i < this.columnNames.length ; i++){
-            if (this.getColumnTypes(i) == Integer.class)
+            if (defaultCellValue.containsKey(i)){
+                data[i] = defaultCellValue.get(i);
+            }else if (this.getColumnType(i) == Integer.class)
                 data[i] = new Integer(rowNum + 1);
-            if (this.getColumnTypes(i) == Double.class)
+            else if (this.getColumnType(i) == Double.class)
                 data[i] = new Double(rowNum + 1);
-            if (this.getColumnTypes(i) == Float.class)
+            else if (this.getColumnType(i) == Float.class)
                 data[i] = new Float(rowNum + 1);
-            if (this.getColumnTypes(i) == Date.class)
+            else if (this.getColumnType(i) == Date.class)
                 data[i] = new Date();
-            if (this.getColumnTypes(i) == String.class)
+            else if (this.getColumnType(i) == String.class)
                 data[i] = label.getString("TBD");
         }
         return data;
@@ -159,6 +162,12 @@ public class EditTableModel extends AbstractTableModel implements TableMenuListe
     public void addNewRow(){
         this.values.add(createNewRow());
         this.fireTableRowsInserted(values.size() - 1, values.size() - 1);
+    }
+    public void setDefaultCellValue(Object value, int col){
+        if (defaultCellValue == null){
+            defaultCellValue = new HashMap<Integer, Object>();
+        }
+        defaultCellValue.put(col, value);
     }
     /**
      * register column number that should NOT be editable ...
@@ -218,7 +227,11 @@ public class EditTableModel extends AbstractTableModel implements TableMenuListe
      */
     @Override
     public Class getColumnClass(int c) {
-        return getValueAt(0, c).getClass();
+        if (this.getRowCount() <= 0){
+            return Object.class;
+        }else {
+            return getValueAt(0, c).getClass();
+        }
     }
     /**
      * 
@@ -228,7 +241,11 @@ public class EditTableModel extends AbstractTableModel implements TableMenuListe
      */
     @Override
     public Object getValueAt(int rowIndex, int columnIndex) {
-        return this.values.get(rowIndex)[columnIndex];
+        if (this.values.size() <= 0){
+            return null;
+        }else{
+            return this.values.get(rowIndex)[columnIndex];
+        }
     }
     /**
      * 
@@ -283,7 +300,7 @@ public class EditTableModel extends AbstractTableModel implements TableMenuListe
         }
     }
     /**
-     * 
+     * from TableModelListener
      * @param e 
      */
     @Override
@@ -292,5 +309,13 @@ public class EditTableModel extends AbstractTableModel implements TableMenuListe
             this.prefs.clear();
             this.setPreferences(values);
         } catch (BackingStoreException ex) {}
+    }
+    /**
+     * 
+     * @param data 
+     */
+    public void setDataRows(ArrayList<Object[]> data){
+        this.values = data;
+        this.fireTableDataChanged();
     }
 }

@@ -5,8 +5,11 @@
 package util.table;
 
 import java.awt.BorderLayout;
+import java.awt.Font;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
 import java.util.Locale;
 import java.util.ResourceBundle;
 import java.util.prefs.Preferences;
@@ -14,7 +17,6 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComponent;
-import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
@@ -30,14 +32,16 @@ import util.table.menu.DelPopUpMenu;
 public class TablePanel extends JPanel {
     private JTable theTable;
     private EditTableModel theModel;
+    private TableRowSorter sorter;
     private ResourceBundle label = ResourceBundle.getBundle("view/labels/ButtonLabels", Locale.getDefault());
     
-    public TablePanel(JFrame frame, String[] columnNames, Class[] columnTypes, Preferences prefs){
+    
+    public TablePanel(String[] columnNames, Class[] columnTypes, Preferences prefs){
         this.setLayout(new BorderLayout());
         theModel = new EditTableModel(columnNames, columnTypes);
         theModel.addTableModelListener(theModel);
         theModel.init(prefs);
-        TableRowSorter sorter = new TableRowSorter<EditTableModel>(getTheModel());
+        sorter = new TableRowSorter<EditTableModel>(theModel);
         this.theTable = new JTable();
         theTable.setRowSelectionAllowed(true);
         theTable.setColumnSelectionAllowed(false);
@@ -48,17 +52,42 @@ public class TablePanel extends JPanel {
     }
     /**
      * 
+     * @return TableRowSorter use with this table
+     */
+    public TableRowSorter getSorter(){
+        return this.sorter;
+    }
+    /**
+     * 
+     * @param data 
+     */
+    public void helperSetAllRows(ArrayList<Object[]> data){
+        this.theModel.setDataRows(data);
+    }
+    /**
+     * Helper to access the model for setting editable column.
+     * @param col 
+     */
+    public void helperSetNotEditAble(int col){
+        this.theModel.setNotEditableCol(col);
+    }
+    public void helperSetDefaultCellValue(Object value, int col){
+        this.theModel.setDefaultCellValue(value, col);
+    }
+    /**
+     * 
      * @return 
      */
     public JComponent createPanel(boolean buttonRow){
         JPanel tablePanel = new JPanel(new BorderLayout());
         tablePanel.add(getTheTable().getTableHeader(), BorderLayout.NORTH);
         tablePanel.add(new JScrollPane(getTheTable()), BorderLayout.CENTER);
-        
+        Font butFont = new Font("Arial", 0, 9);
         JPanel buttonPanel = new JPanel();
         if (buttonRow){
             buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.LINE_AXIS));
             JButton addRow = new JButton(label.getString("BUTAROW"));
+            addRow.setFont(butFont);
             addRow.addActionListener(new ActionListener(){
 
                 @Override
@@ -77,8 +106,8 @@ public class TablePanel extends JPanel {
      *  setup the popup menu for the table to enable delete and delete all rows
      * @param frame 
      */
-    public void setDelMenu(JFrame frame){
-        DelPopUpMenu pMenu = new DelPopUpMenu(theTable, frame);
+    public void setDelMenu(Window frameOrDialog){
+        DelPopUpMenu pMenu = new DelPopUpMenu(theTable, frameOrDialog);
         pMenu.initMenu();
         pMenu.addTableMenuListener(theModel);        
     }
