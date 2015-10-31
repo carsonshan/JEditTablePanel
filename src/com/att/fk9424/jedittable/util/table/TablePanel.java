@@ -2,9 +2,10 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package util.table;
+package com.att.fk9424.jedittable.util.table;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
@@ -22,8 +23,8 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.table.TableRowSorter;
-import model.EditTableModel;
-import util.table.menu.DelPopUpMenu;
+import com.att.fk9424.jedittable.model.EditTableModel;
+import com.att.fk9424.jedittable.util.table.menu.DelPopUpMenu;
 
 /**
  *

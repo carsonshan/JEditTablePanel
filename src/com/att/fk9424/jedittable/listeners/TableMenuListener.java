@@ -1,6 +1,6 @@
-package listeners;
+package com.att.fk9424.jedittable.listeners;
 
-import events.TableMenuEvent;
+import com.att.fk9424.jedittable.events.TableMenuEvent;
 
 public interface TableMenuListener {
     public void tableMenuDelRow(TableMenuEvent e);

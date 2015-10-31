@@ -2,9 +2,9 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package model;
+package com.att.fk9424.jedittable.model;
 
-import events.TableMenuEvent;
+import com.att.fk9424.jedittable.events.TableMenuEvent;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -17,8 +17,8 @@ import javax.swing.JOptionPane;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.AbstractTableModel;
-import listeners.TableMenuListener;
-import interfaces.TableModelColumnType;
+import com.att.fk9424.jedittable.listeners.TableMenuListener;
+import com.att.fk9424.jedittable.interfaces.TableModelColumnType;
 import java.util.HashMap;
 
 /**

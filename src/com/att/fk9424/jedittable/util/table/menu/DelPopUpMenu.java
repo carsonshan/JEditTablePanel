@@ -2,9 +2,9 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package util.table.menu;
+package com.att.fk9424.jedittable.util.table.menu;
 
-import events.TableMenuEvent;
+import com.att.fk9424.jedittable.events.TableMenuEvent;
 import java.awt.Window;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -15,7 +15,7 @@ import java.util.ResourceBundle;
 import javax.swing.JDialog;
 import javax.swing.JPopupMenu;
 import javax.swing.JTable;
-import listeners.TableMenuListener;
+import com.att.fk9424.jedittable.listeners.TableMenuListener;
 
 /**
  * This class provide a popup menu to a jtable (data not to the header) which

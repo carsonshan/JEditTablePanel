@@ -1,4 +1,4 @@
-package events;
+package com.att.fk9424.jedittable.events;
 
 import java.util.EventObject;
 
