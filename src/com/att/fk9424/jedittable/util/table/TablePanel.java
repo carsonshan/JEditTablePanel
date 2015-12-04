@@ -4,8 +4,9 @@
  */
 package com.att.fk9424.jedittable.util.table;
 
+import com.att.fk9424.jedittable.listeners.AddRowListener;
+import com.att.fk9424.jedittable.listeners.TableMenuListener;
 import java.awt.BorderLayout;
-import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
@@ -24,7 +25,8 @@ import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.table.TableRowSorter;
 import com.att.fk9424.jedittable.model.EditTableModel;
-import com.att.fk9424.jedittable.util.table.menu.DelPopUpMenu;
+import com.att.fk9424.jedittable.util.table.menu.TablePopUpMenu;
+import java.util.Iterator;
 
 /**
  *
@@ -34,8 +36,10 @@ public class TablePanel extends JPanel {
     private JTable theTable;
     private EditTableModel theModel;
     private TableRowSorter sorter;
-    private ResourceBundle label = ResourceBundle.getBundle("view/labels/ButtonLabels", Locale.getDefault());
-    
+    private TablePopUpMenu pMenu;
+    private JButton addRow;
+    private ResourceBundle label = ResourceBundle.getBundle("com.att.fk9424.jedittable.view.labels/ButtonLabels", Locale.getDefault());
+    private ArrayList<AddRowListener> addRowListeners;
     
     public TablePanel(String[] columnNames, Class[] columnTypes, Preferences prefs){
         this.setLayout(new BorderLayout());
@@ -47,8 +51,8 @@ public class TablePanel extends JPanel {
         theTable.setRowSelectionAllowed(true);
         theTable.setColumnSelectionAllowed(false);
         theTable.getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        theTable.setRowSorter(sorter);
         theTable.setModel(theModel);
+        theTable.setRowSorter(sorter);
         theTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
     }
     /**
@@ -72,9 +76,20 @@ public class TablePanel extends JPanel {
     public void helperSetNotEditAble(int col){
         this.theModel.setNotEditableCol(col);
     }
+    /**
+     * provide access to the table model to set up default value for a given column for a new add row
+     * @param value
+     * @param col 
+     */
     public void helperSetDefaultCellValue(Object value, int col){
         this.theModel.setDefaultCellValue(value, col);
     }
+    
+    public void addTableAddRowListener(AddRowListener l){
+        if (addRowListeners == null)
+            addRowListeners = new ArrayList<AddRowListener>();
+        addRowListeners.add(l);
+    }                
     /**
      * 
      * @return 
@@ -87,13 +102,16 @@ public class TablePanel extends JPanel {
         JPanel buttonPanel = new JPanel();
         if (buttonRow){
             buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.LINE_AXIS));
-            JButton addRow = new JButton(label.getString("BUTAROW"));
+            addRow = new JButton(label.getString("BUTAROW"));
             addRow.setFont(butFont);
             addRow.addActionListener(new ActionListener(){
 
                 @Override
                 public void actionPerformed(ActionEvent e) {
                     getTheModel().addNewRow();
+                     if (addRowListeners != null){
+                        fireAddedTableRow(getTheModel().getRowCount() - 1);
+                     }
                 }            
             });
             buttonPanel.add(Box.createHorizontalGlue());
@@ -103,14 +121,29 @@ public class TablePanel extends JPanel {
         add(tablePanel, BorderLayout.CENTER);
         return this;
     }
+    
+    private void fireAddedTableRow(int rowNum){
+        Iterator itr = addRowListeners.iterator();
+        while (itr.hasNext())
+            ((AddRowListener)itr.next()).addedTableRow(rowNum);
+    }
     /**
      *  setup the popup menu for the table to enable delete and delete all rows
      * @param frame 
      */
-    public void setDelMenu(Window frameOrDialog){
-        DelPopUpMenu pMenu = new DelPopUpMenu(theTable, frameOrDialog);
+    public void setPopupMenu(Window frameOrDialog){
+        pMenu = new TablePopUpMenu(theTable, frameOrDialog);
         pMenu.initMenu();
         pMenu.addTableMenuListener(theModel);        
+    }
+    /**
+     * provide access to the TableMenuListener
+     * @param l 
+     */
+    public void tableMenuAddTableMenuListener(TableMenuListener l){
+        if (pMenu != null){
+            pMenu.addTableMenuListener(l);
+        }
     }
     /**
      * @return the theTable

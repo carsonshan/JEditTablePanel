@@ -22,7 +22,7 @@ import com.att.fk9424.jedittable.listeners.TableMenuListener;
  * can be then customize with table model to proceed action from the menu.
  * @author fk9424
  */
-public class DelPopUpMenu {
+public class TablePopUpMenu {
     private JPopupMenu pMenu;
     private int colIndex;
     private int rowIndex;
@@ -33,7 +33,7 @@ public class DelPopUpMenu {
     private ArrayList<TableMenuListener> tableMenuListener = new ArrayList<TableMenuListener>();
     private JTable table;
     
-    public DelPopUpMenu(JTable table, Window diag){
+    public TablePopUpMenu(JTable table, Window diag){
         this.table = table;
         this.diag = diag;
     }
@@ -68,17 +68,14 @@ public class DelPopUpMenu {
         DelRowMenuItem mRowDel;
         DelAllRowsMenuItem mRowAllDel;
 
-        ResourceBundle label = ResourceBundle.getBundle("view/labels/MenuLabels", Locale.getDefault());
+        ResourceBundle label = ResourceBundle.getBundle("com.att.fk9424.jedittable.view.labels/MenuLabels", Locale.getDefault());
         pMenu = new JPopupMenu();
         
         mRowDel = new DelRowMenuItem(label.getString("DROW"), this);
         pMenu.add(mRowDel);
-        this.table.getModel().addTableModelListener(mRowDel);
 
         mRowAllDel = new DelAllRowsMenuItem(label.getString("DAROW"), this);
-        pMenu.add(mRowAllDel);
-        this.table.getModel().addTableModelListener(mRowAllDel);
-        
+        pMenu.add(mRowAllDel);        
     }
     /*
      * adding listeners (mainly table model and menu item)
@@ -206,5 +203,4 @@ public class DelPopUpMenu {
     public JTable getTable() {
         return table;
     }
-
 }
