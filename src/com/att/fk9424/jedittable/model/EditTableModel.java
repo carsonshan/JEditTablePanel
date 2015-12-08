@@ -5,6 +5,7 @@
 package com.att.fk9424.jedittable.model;
 
 import com.att.fk9424.jedittable.events.TableMenuEvent;
+import com.att.fk9424.jedittable.listeners.AlertRowListener;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -25,7 +26,7 @@ import java.util.HashMap;
  * A simple Edit Table Model using AbstractTable Model with an home made table menu listener
  * @author fk9424
  */
-public class EditTableModel extends AbstractTableModel implements TableMenuListener, TableModelListener, TableModelColumnType {
+public class EditTableModel extends AbstractTableModel implements TableMenuListener, TableModelListener, TableModelColumnType, AlertRowListener {
     private ArrayList<Object[]> values;
     private String[] columnNames;
     private Class[] columnTypes;
@@ -326,5 +327,15 @@ public class EditTableModel extends AbstractTableModel implements TableMenuListe
     public void setDataRows(ArrayList<Object[]> data){
         this.values = data;
         this.fireTableDataChanged();
+    }
+
+    @Override
+    public void alertRowAdded(int rowIndex) {
+        this.fireTableRowsUpdated(rowIndex, rowIndex);
+    }
+
+    @Override
+    public void alertRowDeleted(int rowIndex) {       
+        this.fireTableRowsUpdated(rowIndex, rowIndex);
     }
 }

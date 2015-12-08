@@ -27,6 +27,7 @@ import javax.swing.table.TableRowSorter;
 import com.att.fk9424.jedittable.model.EditTableModel;
 import com.att.fk9424.jedittable.util.table.menu.TablePopUpMenu;
 import java.util.Iterator;
+import javax.swing.JPopupMenu;
 
 /**
  *
@@ -75,6 +76,10 @@ public class TablePanel extends JPanel {
      */
     public void helperSetNotEditAble(int col){
         this.theModel.setNotEditableCol(col);
+    }
+    
+    public JPopupMenu helperGetTableMenu(){        
+        return this.pMenu.getPopupMenu();
     }
     /**
      * provide access to the table model to set up default value for a given column for a new add row
@@ -131,10 +136,14 @@ public class TablePanel extends JPanel {
      *  setup the popup menu for the table to enable delete and delete all rows
      * @param frame 
      */
-    public void setPopupMenu(Window frameOrDialog){
-        pMenu = new TablePopUpMenu(theTable, frameOrDialog);
+    public void setPopupMenu(Window frameOrDialog, boolean alertAble, Preferences alertAblePref){
+        pMenu = new TablePopUpMenu(theTable, frameOrDialog, alertAble);
+        if (alertAble){
+            pMenu.setAlertRowNumberFromPref(alertAblePref);
+            pMenu.addAlertRowListener(theModel);
+        }
         pMenu.initMenu();
-        pMenu.addTableMenuListener(theModel);        
+        pMenu.addTableMenuListener(theModel);
     }
     /**
      * provide access to the TableMenuListener
@@ -159,4 +168,8 @@ public class TablePanel extends JPanel {
         return theModel;
     }
     
+    public boolean isRowAlertable(int rowIndex){
+        return pMenu.isRowAlertable(rowIndex);
+    }
+
 }
