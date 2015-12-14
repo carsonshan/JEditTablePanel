@@ -5,7 +5,6 @@
 package com.att.fk9424.jedittable.model;
 
 import com.att.fk9424.jedittable.events.TableMenuEvent;
-import com.att.fk9424.jedittable.listeners.AlertRowListener;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -14,7 +13,6 @@ import java.util.Locale;
 import java.util.ResourceBundle;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
-import javax.swing.JOptionPane;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.AbstractTableModel;
@@ -26,7 +24,7 @@ import java.util.HashMap;
  * A simple Edit Table Model using AbstractTable Model with an home made table menu listener
  * @author fk9424
  */
-public class EditTableModel extends AbstractTableModel implements TableMenuListener, TableModelListener, TableModelColumnType, AlertRowListener {
+public class EditTableModel extends AbstractTableModel implements TableMenuListener, TableModelListener, TableModelColumnType {
     private ArrayList<Object[]> values;
     private String[] columnNames;
     private Class[] columnTypes;
@@ -35,11 +33,13 @@ public class EditTableModel extends AbstractTableModel implements TableMenuListe
     private SimpleDateFormat formatter = new SimpleDateFormat("dd-MMM-yy");
     private ResourceBundle label = ResourceBundle.getBundle("com.att.fk9424.jedittable.view.labels/TableModelLabels", Locale.getDefault());
     private HashMap<Integer, Object> defaultCellValue;
+    private int alertColIdNumber = -1;
     
     public EditTableModel(String[] columnNames, Class[] columnTypes){
         this.columnNames = columnNames;
         this.columnTypes = columnTypes;
     }
+    
     public void init(Preferences prefs){
         this.prefs = prefs;
         ArrayList<Object[]> val = new ArrayList<Object[]>();
@@ -134,13 +134,22 @@ public class EditTableModel extends AbstractTableModel implements TableMenuListe
         }
         this.values.add(val);
     }
+    public void setAlertColumnNumber(int colIndex){
+        this.alertColIdNumber = colIndex;
+    }
     /**
      * 
      * @return a array of object corresponding to the data need for new row
      */
     public Object[] createNewRow(){
         int rowNum;
-        rowNum = (this.values != null) ? this.getRowCount() : 0;
+        if ((this.values != null) && (values.size() > 0)){//we already have data in the table
+            if (alertColIdNumber != -1){//get the value
+                rowNum = ((Integer)this.getValueAt(this.getRowCount() - 1, alertColIdNumber));
+            }else
+                rowNum = this.getRowCount();
+        }else
+            rowNum = 0;
         Object[] data = new Object[this.columnNames.length];        
         for(int i = 0 ; i < this.columnNames.length ; i++){
             if ((defaultCellValue != null)&&(defaultCellValue.containsKey(i))){
@@ -168,6 +177,7 @@ public class EditTableModel extends AbstractTableModel implements TableMenuListe
         this.values.add(createNewRow());
         this.fireTableRowsInserted(values.size() - 1, values.size() - 1);
     }
+    
     public void setDefaultCellValue(Object value, int col){
         if (defaultCellValue == null){
             defaultCellValue = new HashMap<Integer, Object>();
@@ -285,11 +295,8 @@ public class EditTableModel extends AbstractTableModel implements TableMenuListe
     @Override
     public void tableMenuDelRow(TableMenuEvent e) {
         int rowIndex =e.getRowIndex();        
-        int option = JOptionPane.showConfirmDialog(null, label.getString("MSGDEL"), label.getString("TITLEDEL"), JOptionPane.YES_NO_OPTION);
-        if (option == JOptionPane.YES_OPTION){
-            this.values.remove(rowIndex);
-            this.fireTableRowsDeleted(rowIndex, rowIndex);            
-        }
+        this.values.remove(rowIndex);
+        this.fireTableRowsDeleted(rowIndex, rowIndex);            
     }
     /**
      * from TableMenuListener 
@@ -297,12 +304,9 @@ public class EditTableModel extends AbstractTableModel implements TableMenuListe
      */
     @Override
     public void tableMenuDelAllRows() {        
-        int option = JOptionPane.showConfirmDialog(null, label.getString("MSGDELALL"), label.getString("TITLEDELALL"), JOptionPane.YES_NO_OPTION);
-        if (option == JOptionPane.YES_OPTION){
-            while(getRowCount()>0){
-                this.values.remove(0);
-                this.fireTableRowsDeleted(0, 0);
-            }
+        while(getRowCount()>0){
+            this.values.remove(0);
+            this.fireTableRowsDeleted(0, 0);
         }
     }
     /**
@@ -327,15 +331,5 @@ public class EditTableModel extends AbstractTableModel implements TableMenuListe
     public void setDataRows(ArrayList<Object[]> data){
         this.values = data;
         this.fireTableDataChanged();
-    }
-
-    @Override
-    public void alertRowAdded(int rowIndex) {
-        this.fireTableRowsUpdated(rowIndex, rowIndex);
-    }
-
-    @Override
-    public void alertRowDeleted(int rowIndex) {       
-        this.fireTableRowsUpdated(rowIndex, rowIndex);
     }
 }

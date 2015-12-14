@@ -26,8 +26,8 @@ import javax.swing.ListSelectionModel;
 import javax.swing.table.TableRowSorter;
 import com.att.fk9424.jedittable.model.EditTableModel;
 import com.att.fk9424.jedittable.util.table.menu.TablePopUpMenu;
+import interfaces.AlertRowListener;
 import java.util.Iterator;
-import javax.swing.JPopupMenu;
 
 /**
  *
@@ -76,11 +76,7 @@ public class TablePanel extends JPanel {
      */
     public void helperSetNotEditAble(int col){
         this.theModel.setNotEditableCol(col);
-    }
-    
-    public JPopupMenu helperGetTableMenu(){        
-        return this.pMenu.getPopupMenu();
-    }
+    }    
     /**
      * provide access to the table model to set up default value for a given column for a new add row
      * @param value
@@ -136,14 +132,19 @@ public class TablePanel extends JPanel {
      *  setup the popup menu for the table to enable delete and delete all rows
      * @param frame 
      */
-    public void setPopupMenu(Window frameOrDialog, boolean alertAble, Preferences alertAblePref){
-        pMenu = new TablePopUpMenu(theTable, frameOrDialog, alertAble);
+    public void setPopupMenu(Window frameOrDialog, boolean alertAble, Preferences alertAblePref, int alertColumnNumber, int alertDateColNum, int alertInfoColNum){        
+        pMenu = new TablePopUpMenu(theTable, frameOrDialog, alertAble, alertAblePref, alertColumnNumber, this);
         if (alertAble){
+            pMenu.setAlertDateColNum(alertDateColNum);
+            pMenu.setAlertInfoColNum(alertInfoColNum);
             pMenu.setAlertRowNumberFromPref(alertAblePref);
-            pMenu.addAlertRowListener(theModel);
+            theModel.setAlertColumnNumber(alertColumnNumber);
         }
         pMenu.initMenu();
         pMenu.addTableMenuListener(theModel);
+    }
+    public void addAlertRowListener(AlertRowListener l){
+        pMenu.addAlertRowListener(l);
     }
     /**
      * provide access to the TableMenuListener
@@ -168,8 +169,23 @@ public class TablePanel extends JPanel {
         return theModel;
     }
     
+    public int getAlertColIdValue(int rowIndex){
+        return pMenu.getAlertColIdValue(rowIndex);
+    }
+    
     public boolean isRowAlertable(int rowIndex){
         return pMenu.isRowAlertable(rowIndex);
     }
-
+    
+    public int getAlertColIdRowFromValue(int indexValue){
+        return pMenu.getAlertColIdRowFromValue(indexValue);
+    }
+    
+    public int getAlertDateColNumber(){
+        return pMenu.getAlertDateColNumber();
+    }
+    
+    public int getAlertInfoColNumber(){
+        return pMenu.getAlertInfoColNumber();
+    }
 }
